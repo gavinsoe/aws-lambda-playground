@@ -1,0 +1,49 @@
+[tool.poetry]
+name = "silk-api-integration"
+version = "0.2.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "silk_api_integration"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+toml = "^0.10.2"
+sqlalchemy = "^2.0.4"
+psycopg2 = "^2.9.5"
+
+[tool.poetry.group.dev.dependencies]
+pylint = "^2.16.2"
+black = "^23.1.0"
+isort = "^5.12.0"
+pandas = "^1.5.3"
+numpy = "^1.24.2"
+rich = "^13.3.1"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^6.0.0"
+pytest-mock = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 99 # override black's default line-length
+exclude = '''
+/(
+    \.git
+  | \.mypy_cache
+  | \.tox
+  | venv
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+# make it compatible with black
+profile = "black" 

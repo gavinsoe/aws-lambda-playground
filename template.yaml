@@ -1,0 +1,154 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  SILK Data Integration
+  
+  SAM template to setup all the resources for the sync process, as well as the admin page
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+    MemorySize: 128
+    Tracing: Active
+  Api:
+    TracingEnabled: true
+
+Resources:
+  TestLinearProcess:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: workflow-linear.asl.json
+      DefinitionSubstitutions:
+        Step1FunctionArn: !GetAtt Step1Function.Arn
+        Step2FunctionArn: !GetAtt Step2Function.Arn
+        Step3FunctionArn: !GetAtt Step3Function.Arn
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref Step1Function
+        - LambdaInvokePolicy:
+            FunctionName: !Ref Step2Function
+        - LambdaInvokePolicy:
+            FunctionName: !Ref Step3Function
+
+  Step1Function:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: app/
+      Handler: linear.step_1
+      Runtime: python3.9
+      Timeout: 900
+      Architectures:
+      - x86_64
+
+  Step2Function:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: app/
+      Handler: linear.step_2
+      Runtime: python3.9
+      Timeout: 900
+      Architectures:
+      - x86_64
+
+  Step3Function:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: app/
+      Handler: linear.step_3
+      Runtime: python3.9
+      Timeout: 900
+      Architectures:
+      - x86_64
+
+  TestParallelProcess:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: workflow-parallel.asl.json
+      DefinitionSubstitutions:
+        Parallel1FunctionArn: !GetAtt Parallel1Function.Arn
+        Parallel2FunctionArn: !GetAtt Parallel2Function.Arn
+        ParallelEndFunctionArn: !GetAtt ParallelEndFunction.Arn
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref Parallel1Function
+        - LambdaInvokePolicy:
+            FunctionName: !Ref Parallel2Function
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ParallelEndFunction
+  
+  Parallel1Function:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: app/
+      Handler: parallel.parallel_1
+      Runtime: python3.9
+      Timeout: 900
+      Architectures:
+      - x86_64
+
+  Parallel2Function:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: app/
+      Handler: parallel.parallel_2
+      Runtime: python3.9
+      Timeout: 900
+      Architectures:
+      - x86_64
+
+  ParallelEndFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: app/
+      Handler: parallel.end
+      Runtime: python3.9
+      Timeout: 900
+      Architectures:
+      - x86_64
+
+  TestMapProcess:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: workflow-map.asl.json
+      DefinitionSubstitutions:
+        MapGenerateDataFunctionArn: !GetAtt MapGenerateDataFunction.Arn
+        MapProcessElementFunctionArn: !GetAtt MapProcessElementFunction.Arn
+        MapGetResultFunctionArn: !GetAtt MapGetResultFunction.Arn
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref MapGenerateDataFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref MapProcessElementFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref MapGetResultFunction
+  
+  MapGenerateDataFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: app/
+      Handler: map.generate_data
+      Runtime: python3.9
+      Timeout: 900
+      Architectures:
+      - x86_64
+
+  MapProcessElementFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: app/
+      Handler: map.process_element
+      Runtime: python3.9
+      Timeout: 900
+      Architectures:
+      - x86_64
+
+  MapGetResultFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: app/
+      Handler: map.get_result
+      Runtime: python3.9
+      Timeout: 900
+      Architectures:
+      - x86_64
